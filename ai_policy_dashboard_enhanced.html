@@ -1,0 +1,583 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Policy Dashboard — 15 Universities Report</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --panel: #11182d;
+    --panel-2: #16213d;
+    --text: #eef2ff;
+    --muted: #a7b0cc;
+    --line: rgba(255,255,255,.09);
+    --accent: #7dd3fc;
+    --accent-2: #c4b5fd;
+    --good: #86efac;
+    --warn: #fbbf24;
+    --bad: #fca5a5;
+    --shadow: 0 16px 40px rgba(0,0,0,.28);
+    --radius: 22px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    background:
+      radial-gradient(1200px 700px at 10% 0%, rgba(125,211,252,.14), transparent 55%),
+      radial-gradient(900px 600px at 90% 0%, rgba(196,181,253,.14), transparent 48%),
+      var(--bg);
+    color: var(--text);
+  }
+  .wrap { max-width: 1440px; margin: 0 auto; padding: 24px; }
+  .hero {
+    display: grid;
+    grid-template-columns: 1.35fr .65fr;
+    gap: 18px;
+    align-items: stretch;
+    margin-bottom: 18px;
+  }
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.025));
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+  }
+  .hero-main { padding: 24px; }
+  .eyebrow {
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 7px 12px; border-radius: 999px;
+    background: rgba(125,211,252,.12);
+    color: #d8f3ff; font-size: 12px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  h1 { margin: 14px 0 10px; font-size: clamp(30px, 4vw, 50px); line-height: 1.04; }
+  .subtitle { color: var(--muted); max-width: 70ch; font-size: 15px; line-height: 1.6; }
+  .meta {
+    margin-top: 18px; display:flex; flex-wrap: wrap; gap: 10px;
+  }
+  .pill {
+    padding: 9px 12px; border-radius: 999px; border:1px solid var(--line);
+    background: rgba(255,255,255,.03); color: var(--text); font-size: 13px;
+  }
+  .hero-side {
+    padding: 18px;
+    display:grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .mini {
+    padding: 16px; border-radius: 18px; background: rgba(255,255,255,.03);
+    border: 1px solid var(--line);
+  }
+  .mini h3 { margin: 0 0 6px; font-size: 14px; color: #dbeafe; }
+  .mini .big { font-size: 28px; font-weight: 800; margin: 6px 0 0; }
+  .mini .small { color: var(--muted); font-size: 12px; line-height: 1.45; }
+  .grid {
+    display:grid;
+    grid-template-columns: 320px minmax(0,1fr) 390px;
+    gap: 18px;
+    align-items:start;
+  }
+  .panel { padding: 18px; }
+  .panel h2 { margin: 0 0 12px; font-size: 18px; }
+  .control {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.04);
+    color: var(--text);
+    outline: none;
+  }
+  .control::placeholder { color: #8f98b9; }
+  select.control option { color: #0b1020; }
+  .filters { display:grid; gap: 10px; }
+  .chip-row { display:flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    cursor:pointer;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.03);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    user-select: none;
+  }
+  .chip.active { background: rgba(125,211,252,.16); border-color: rgba(125,211,252,.4); }
+  .chart {
+    margin-top: 14px;
+    display:grid;
+    gap: 10px;
+  }
+  .barrow {
+    display:grid;
+    grid-template-columns: 138px 1fr 42px;
+    gap: 8px;
+    align-items:center;
+    font-size: 12px;
+  }
+  .bartrack {
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.06);
+    overflow: hidden;
+  }
+  .barfill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(125,211,252,.95), rgba(196,181,253,.95));
+  }
+  .cards {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  .uni {
+    padding: 16px;
+    cursor: pointer;
+    transition: transform .16s ease, border-color .16s ease, background .16s ease;
+  }
+  .uni:hover { transform: translateY(-2px); border-color: rgba(125,211,252,.35); }
+  .uni.active { outline: 2px solid rgba(125,211,252,.65); }
+  .name { font-size: 16px; font-weight: 800; margin: 0 0 5px; }
+  .summary { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0 0 12px; }
+  .tagrow { display:flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .tag {
+    padding: 6px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.035);
+  }
+  .tag.good { background: rgba(134,239,172,.10); }
+  .tag.warn { background: rgba(251,191,36,.10); }
+  .tag.bad { background: rgba(252,165,165,.10); }
+  .detail {
+    position: sticky; top: 18px;
+  }
+  .detail h2 { margin-top: 0; }
+  .detail .headline {
+    font-size: 22px; font-weight: 900; margin: 0 0 8px;
+  }
+  .detail .kpi-row {
+    display:grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin: 14px 0;
+  }
+  .kpi {
+    padding: 12px; border-radius: 16px; background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  }
+  .kpi .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing:.08em; }
+  .kpi .value { margin-top: 5px; font-size: 13px; font-weight: 700; line-height: 1.4; }
+  .bullets {
+    margin: 12px 0 0; padding-left: 18px; color: #e8edff;
+  }
+  .bullets li { margin-bottom: 8px; color: #e8edff; line-height: 1.45; }
+  .table-wrap {
+    overflow:auto;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.03);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1120px;
+    font-size: 13px;
+  }
+  th, td {
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding: 12px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    position: sticky; top: 0;
+    background: rgba(14,20,38,.98);
+    z-index: 1;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #cbd5e1;
+  }
+  tr:hover td { background: rgba(255,255,255,.025); }
+  .footer-note {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+  .section-title {
+    display:flex; align-items:end; justify-content:space-between;
+    gap: 12px; margin: 22px 0 12px;
+  }
+  .section-title h2 { margin: 0; }
+  .section-title .count { color: var(--muted); font-size: 13px; }
+  .searchhint { color: var(--muted); font-size: 12px; margin-top: 8px; }
+  @media (max-width: 1200px) {
+    .grid { grid-template-columns: 1fr; }
+    .detail { position: static; }
+    .hero { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="card hero-main">
+      <div class="eyebrow">Interactive report dashboard</div>
+      <h1>AI policy dashboard for the “15 Universities” report</h1>
+      <div class="subtitle">
+        Explore how the report compares AI rules across coursework, theses, dissertations, and research. Use the filters to narrow the universities, click a card to inspect the details, and review the comparison table below.
+      </div>
+      <div class="meta">
+        <div class="pill">Extracted institutions: 15</div>
+        <div class="pill">Regions covered: US, Canada, UK, Europe</div>
+        <div class="pill">Focus: coursework + graduate research</div>
+        <div class="pill">Includes: disclosure, privacy, thesis guidance</div>
+      </div>
+    </div>
+    <div class="card hero-side">
+      <div class="mini">
+        <h3>Coursework governance</h3>
+        <div class="big" id="courseCount">—</div>
+        <div class="small">How many institutions rely on instructor-, department-, or course-level AI rules.</div>
+      </div>
+      <div class="mini">
+        <h3>Graduate research guidance</h3>
+        <div class="big" id="researchCount">—</div>
+        <div class="small">How many institutions give explicit guidance for theses, dissertations, or other graduate milestones.</div>
+      </div>
+      <div class="mini">
+        <h3>Disclosure expectation</h3>
+        <div class="big" id="disclosureCount">—</div>
+        <div class="small">How many institutions expect or require AI use to be disclosed, acknowledged, or documented.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card panel">
+      <h2>Filters</h2>
+      <input id="search" class="control" placeholder="Search institution or policy text…" />
+      <select id="region" class="control">
+        <option value="All">All regions</option>
+      </select>
+      <select id="course" class="control">
+        <option value="All">All course models</option>
+      </select>
+      <select id="disclosure" class="control">
+        <option value="All">All disclosure levels</option>
+      </select>
+      <select id="thesis" class="control">
+        <option value="All">All thesis guidance</option>
+      </select>
+
+      <div class="section-title" style="margin-top:16px;">
+        <h2>Pattern view</h2>
+        <div class="count" id="visibleCount">— visible</div>
+      </div>
+      <div class="chart" id="bars"></div>
+      <div class="searchhint">Tip: combine search with the dropdowns to isolate one policy style.</div>
+    </div>
+
+    <div class="card panel">
+      <div class="section-title">
+        <h2>Universities</h2>
+        <div class="count">Click any card to inspect</div>
+      </div>
+      <div class="cards" id="cards"></div>
+    </div>
+
+    <div class="card panel detail" id="detail">
+      <h2>Selected institution</h2>
+      <div class="headline" id="dName">—</div>
+      <div class="tagrow" id="dTags"></div>
+      <p class="summary" id="dSummary">Select a university card to see the policy summary and main takeaways.</p>
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="label">Coursework model</div>
+          <div class="value" id="dCourse">—</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Research model</div>
+          <div class="value" id="dResearch">—</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Disclosure</div>
+          <div class="value" id="dDisclosure">—</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Thesis guidance</div>
+          <div class="value" id="dThesis">—</div>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="label">Review / compliance</div>
+        <div class="value" id="dReview">—</div>
+      </div>
+      <div class="kpi" style="margin-top:10px;">
+        <div class="label">Privacy / IP emphasis</div>
+        <div class="value" id="dPrivacy">—</div>
+      </div>
+      <h3 style="margin:16px 0 8px; font-size:15px;">Key takeaways</h3>
+      <ul class="bullets" id="dBullets"></ul>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <h2>Comparison table</h2>
+    <div class="count">Rows change with the filters above</div>
+  </div>
+  <div class="table-wrap card">
+    <table>
+      <thead>
+        <tr>
+          <th>Institution</th>
+          <th>Region</th>
+          <th>Coursework</th>
+          <th>Research</th>
+          <th>Disclosure</th>
+          <th>Thesis guidance</th>
+          <th>Review mechanism</th>
+          <th>Privacy / IP emphasis</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  
+<div class="card panel" id="full-profile-section" style="margin-top:24px;">
+  <div class="section-title">
+    <h2>Full University Profile</h2>
+    <div class="count">Click a university card above</div>
+  </div>
+  <div id="full-profile-content">
+    <p>Select a university to view detailed information.</p>
+  </div>
+</div>
+
+<div class="footer-note">
+    Built from the uploaded PDF report. The dashboard reflects the report’s university-by-university policy comparisons and is designed for quick filtering, browsing, and presentation use.
+  </div>
+</div>
+
+<script>
+const data = [{"name": "Columbia University", "region": "US", "course_model": "Instructor-controlled", "research_model": "Supervisor / publication guided", "disclosure": "Expected", "thesis_guidance": "Limited", "review": "Academic integrity + misconduct", "privacy": "High", "summary": "Generative AI is allowed only when it fits academic integrity, instructor expectations, and publication or funding rules.", "highlights": ["Coursework is prohibited unless the instructor explicitly permits it.", "Research use must be transparent in methods, acknowledgements, or similar sections.", "No separate thesis AI review process is published; existing integrity standards apply."]}, {"name": "Yale University", "region": "US", "course_model": "Instructor-controlled", "research_model": "Responsible-use / supervisor guided", "disclosure": "Expected", "thesis_guidance": "Limited", "review": "Academic integrity + AI review framework", "privacy": "High", "summary": "Yale combines course-level AI rules with responsible-use research guidance and strong privacy, ethics, and governance themes.", "highlights": ["Whether AI is allowed depends on the instructor and the course.", "Researchers are expected to critically evaluate outputs and protect data.", "Yale has an AI Review Framework for institutional governance."]}, {"name": "Stanford University", "region": "US", "course_model": "Instructor-controlled", "research_model": "Supervisor / PI guided", "disclosure": "Expected", "thesis_guidance": "Limited", "review": "Honor Code + academic misconduct", "privacy": "High", "summary": "Stanford gives instructors and departments wide flexibility while emphasizing accountability, disclosure, and caution around AI detectors.", "highlights": ["Faculty may permit, partially permit, or prohibit AI use.", "Stanford Medicine requires documenting tool, model, prompt, date, and output used.", "AI detectors are discouraged for high-stakes misconduct decisions."]}, {"name": "Princeton University", "region": "US", "course_model": "Instructor-controlled", "research_model": "Adviser / department guided", "disclosure": "Mandatory when allowed", "thesis_guidance": "Strong", "review": "Academic integrity + governance committee", "privacy": "High", "summary": "Princeton is explicit about disclosure: AI may be used only within course or department limits, and graduate guidance is unusually detailed.", "highlights": ["Students must follow course and departmental policies on generative AI.", "The History Department strongly limits AI in early doctoral training.", "AI contributions to dissertations and publications should be openly acknowledged."]}, {"name": "Harvard University", "region": "US", "course_model": "School-based / instructor controlled", "research_model": "Adviser / publisher guided", "disclosure": "Conditional", "thesis_guidance": "Limited", "review": "School-level integrity processes", "privacy": "High", "summary": "Harvard uses a decentralized school-based model with strong emphasis on originality, publisher requirements, copyright, and confidential data protection.", "highlights": ["All faculty are required to inform students of course generative AI policies.", "Researchers should review publisher and funder requirements before using AI.", "Confidential or non-public research data should not go into public AI tools."]}, {"name": "University of Toronto", "region": "Canada", "course_model": "Default prohibited unless permitted", "research_model": "Supervisor approval required", "disclosure": "Mandatory / documented", "thesis_guidance": "Strong", "review": "Academic misconduct + research misconduct", "privacy": "High", "summary": "U of T combines a permission-based course rule with detailed SGS guidance for graduate milestones, theses, and doctoral examinations.", "highlights": ["AI is not allowed in a course unless the instructor explicitly permits it.", "SGS recommends prior written approval from supervisors and committees.", "Disclosure and description of AI use are expected across graduate milestones."]}, {"name": "McGill University", "region": "Canada", "course_model": "Instructor-controlled", "research_model": "Supervisor guided", "disclosure": "Expected", "thesis_guidance": "Strong", "review": "Academic integrity procedures", "privacy": "High", "summary": "McGill’s research guidance is notably detailed, including thesis-specific disclosure expectations and supervisor consultation.", "highlights": ["Instructors generally determine whether AI is permitted in course work.", "GPS has developed graduate guidance and thesis disclosure frameworks.", "PHI and PCI data are explicitly prohibited from public AI systems."]}, {"name": "University of British Columbia", "region": "Canada", "course_model": "Instructor / program based", "research_model": "Supervisor / committee guided", "disclosure": "Expected", "thesis_guidance": "Strong", "review": "Academic misconduct + research integrity", "privacy": "High", "summary": "UBC uses a decentralized model with strong emphasis on verification, supervisory consultation, and protecting confidential or unpublished materials.", "highlights": ["No blanket university-wide permission or prohibition exists.", "G+PS guidance covers theses, dissertations, comprehensive exams, and publications.", "Students remain responsible for all submitted work."]}, {"name": "McMaster University", "region": "Canada", "course_model": "Instructor approval required", "research_model": "Supervisory / discipline based", "disclosure": "Expected", "thesis_guidance": "Limited", "review": "Academic + research integrity", "privacy": "High", "summary": "McMaster’s guidance is provisional and context dependent, with course-outline options and separate research guidance for graduate work.", "highlights": ["Students are told not to assume AI is permitted and should seek approval first.", "Research guidance is provisional and explicitly aimed at graduate students too.", "AI-related misconduct is handled through existing integrity processes."]}, {"name": "University of Alberta", "region": "Canada", "course_model": "Course / program level", "research_model": "Supervisor guided", "disclosure": "Expected", "thesis_guidance": "Strong", "review": "Academic misconduct + research integrity", "privacy": "High", "summary": "U of A provides one of the broadest graduate AI scopes in the report, including theses, candidacy, qualifying exams, and publications.", "highlights": ["AI misuse can constitute academic misconduct under the Student Academic Integrity Policy.", "GPS guidance explicitly covers thesis writing, candidacy proposals, and examinations.", "Students are encouraged to acknowledge, cite, and reflect on AI use."]}, {"name": "University of Oxford", "region": "UK", "course_model": "Assessment-specific", "research_model": "Research-policy guided", "disclosure": "Expected / conditional", "thesis_guidance": "Moderate", "review": "Academic integrity + research code", "privacy": "High", "summary": "Oxford allows responsible AI use while tying course and research use to rigour, transparency, data protection, and intellectual property requirements.", "highlights": ["AI is not blanket-banned, but assessed work depends on assessment-specific rules.", "Oxford has a formal research policy to support responsible GenAI use.", "A separate postgraduate guide addresses thesis and dissertation use."]}, {"name": "University of Cambridge", "region": "UK", "course_model": "Principles-based / faculty rules", "research_model": "Integrity frameworks", "disclosure": "Mandatory in assessed work", "thesis_guidance": "Moderate", "review": "Academic integrity", "privacy": "High", "summary": "Cambridge relies on central guidance plus faculty and department rules; AI can support learning, but assessed use must be declared.", "highlights": ["AI can support research, summarising, proofreading, and idea generation.", "Undisclosed AI-generated content may be treated as misconduct.", "Graduate students must maintain full responsibility for originality."]}, {"name": "ETH Zurich", "region": "Europe", "course_model": "Responsible-use", "research_model": "Responsible-use", "disclosure": "Expected", "thesis_guidance": "Moderate", "review": "Academic misconduct + doctoral guidance", "privacy": "High", "summary": "ETH encourages engagement with AI while insisting on responsibility, transparency, fairness, and human verification of outputs.", "highlights": ["The creator of content is always responsible for correctness and quality.", "A human-in-the-loop approach is central to ETH guidance.", "AI use is integrated into academic integrity and doctoral frameworks."]}, {"name": "Technical University of Munich", "region": "Europe", "course_model": "Responsible-use / course specific", "research_model": "Responsible-use / university strategy", "disclosure": "Expected", "thesis_guidance": "Moderate", "review": "Existing academic integrity frameworks", "privacy": "High", "summary": "TUM’s AI strategy covers teaching, research, administration, and learning environments, backed by a responsible-implementation framework.", "highlights": ["TUM does not issue a blanket allow/ban rule for coursework.", "Students remain responsible for submitted work and course requirements.", "Ethics, transparency, and human accountability are core themes."]}, {"name": "King's College London", "region": "UK", "course_model": "Permissive but regulated", "research_model": "Doctoral guidance / supervisor informed", "disclosure": "Mandatory", "thesis_guidance": "Strong", "review": "Academic Integrity Meetings + misconduct process", "privacy": "High", "summary": "KCL is the most explicitly permissive in the report, but it requires disclosure, supervisor discussion, and clear responsibility for all submitted work.", "highlights": ["KCL does not ban AI use, including in doctoral thesis writing.", "Students must acknowledge AI use and take full responsibility for content.", "Academic Integrity Meetings are a formal mechanism for suspected misuse."]}];
+
+const els = {
+  search: document.getElementById('search'),
+  region: document.getElementById('region'),
+  course: document.getElementById('course'),
+  disclosure: document.getElementById('disclosure'),
+  thesis: document.getElementById('thesis'),
+  cards: document.getElementById('cards'),
+  tableBody: document.getElementById('tableBody'),
+  dName: document.getElementById('dName'),
+  dTags: document.getElementById('dTags'),
+  dSummary: document.getElementById('dSummary'),
+  dCourse: document.getElementById('dCourse'),
+  dResearch: document.getElementById('dResearch'),
+  dDisclosure: document.getElementById('dDisclosure'),
+  dThesis: document.getElementById('dThesis'),
+  dReview: document.getElementById('dReview'),
+  dPrivacy: document.getElementById('dPrivacy'),
+  dBullets: document.getElementById('dBullets'),
+  bars: document.getElementById('bars'),
+  visibleCount: document.getElementById('visibleCount'),
+  courseCount: document.getElementById('courseCount'),
+  researchCount: document.getElementById('researchCount'),
+  disclosureCount: document.getElementById('disclosureCount'),
+};
+
+function uniq(arr) { return [...new Set(arr)]; }
+
+function populateSelect(select, values) {
+  values.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    select.appendChild(opt);
+  });
+}
+
+populateSelect(els.region, uniq(data.map(d => d.region)));
+populateSelect(els.course, uniq(data.map(d => d.course_model)));
+populateSelect(els.disclosure, uniq(data.map(d => d.disclosure)));
+populateSelect(els.thesis, uniq(data.map(d => d.thesis_guidance)));
+
+function colorClass(text) {
+  const t = text.toLowerCase();
+  if (t.includes('mandatory') || t.includes('default prohibited') || t.includes('strong') || t.includes('high')) return 'bad';
+  if (t.includes('expected') || t.includes('conditional') || t.includes('supervisor') || t.includes('course') || t.includes('guidance')) return 'warn';
+  return 'good';
+}
+
+function matches(item) {
+  const q = els.search.value.trim().toLowerCase();
+  const region = els.region.value;
+  const course = els.course.value;
+  const disclosure = els.disclosure.value;
+  const thesis = els.thesis.value;
+
+  const blob = [item.name, item.region, item.course_model, item.research_model, item.disclosure, item.thesis_guidance, item.review, item.privacy, item.summary, ...item.highlights].join(' ').toLowerCase();
+
+  return (!q || blob.includes(q)) &&
+         (region === 'All' || item.region === region) &&
+         (course === 'All' || item.course_model === course) &&
+         (disclosure === 'All' || item.disclosure === disclosure) &&
+         (thesis === 'All' || item.thesis_guidance === thesis);
+}
+
+
+const fullProfiles = {};
+data.forEach(d=>{
+ fullProfiles[d.name] = `
+ <h3>${d.name}</h3>
+ <p><strong>Summary:</strong> ${d.summary}</p>
+ <h4>Coursework Model</h4><p>${d.course_model}</p>
+ <h4>Research Model</h4><p>${d.research_model}</p>
+ <h4>Disclosure</h4><p>${d.disclosure}</p>
+ <h4>Thesis Guidance</h4><p>${d.thesis_guidance}</p>
+ <h4>Review Mechanism</h4><p>${d.review}</p>
+ <h4>Privacy/IP</h4><p>${d.privacy}</p>
+ <h4>Key Takeaways</h4>
+ <ul>${d.highlights.map(x=>`<li>${x}</li>`).join('')}</ul>
+ `;
+});
+
+function renderFullProfile(){
+ const el=document.getElementById('full-profile-content');
+ if(el && selected){ el.innerHTML = fullProfiles[selected.name] || ''; }
+}
+
+let selected = data[0];
+
+function setSelected(item) {
+  selected = item;
+  renderDetail();
+  renderCards();
+}
+
+function renderDetail() {
+  if (!selected) return;
+  els.dName.textContent = selected.name;
+  els.dSummary.textContent = selected.summary;
+  els.dCourse.textContent = selected.course_model;
+  els.dResearch.textContent = selected.research_model;
+  els.dDisclosure.textContent = selected.disclosure;
+  els.dThesis.textContent = selected.thesis_guidance;
+  els.dReview.textContent = selected.review;
+  els.dPrivacy.textContent = selected.privacy;
+
+  const tags = [
+    selected.region,
+    selected.course_model,
+    selected.research_model,
+    selected.disclosure,
+    selected.thesis_guidance
+  ];
+
+  els.dTags.innerHTML = tags.map(t => `<span class="tag ${colorClass(t)}">${t}</span>`).join('');
+  els.dBullets.innerHTML = selected.highlights.map(b => `<li>${b}</li>`).join(''); renderFullProfile();
+}
+
+function renderCards() {
+  const filtered = data.filter(matches);
+  els.visibleCount.textContent = `${filtered.length} visible`;
+
+  els.cards.innerHTML = filtered.map(item => {
+    const active = selected && selected.name === item.name ? 'active' : '';
+    return `
+      <div class="card uni ${active}" data-name="${item.name}">
+        <div class="name">${item.name}</div>
+        <div class="tagrow">
+          <span class="tag">${item.region}</span>
+          <span class="tag ${colorClass(item.course_model)}">${item.course_model}</span>
+        </div>
+        <p class="summary">${item.summary}</p>
+        <div class="tagrow">
+          <span class="tag ${colorClass(item.disclosure)}">${item.disclosure}</span>
+          <span class="tag ${colorClass(item.thesis_guidance)}">${item.thesis_guidance} thesis guidance</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  els.cards.querySelectorAll('.uni').forEach(card => {
+    card.addEventListener('click', () => {
+      const item = data.find(d => d.name === card.dataset.name);
+      if (item) { setSelected(item); document.getElementById('full-profile-section').scrollIntoView({behavior:'smooth'});}
+    });
+  });
+
+  renderTable(filtered);
+  renderBars(filtered);
+  const courseFam = filtered.filter(d => /instructor|default prohibited|course \/ program|assessment-specific|school-based|permission|module|faculty|department|program/i.test(d.course_model)).length;
+  const researchFam = filtered.filter(d => /supervisor|research|responsible-use|guidance|adviser|department|policy|committee/i.test(d.research_model)).length;
+  const disclosureFam = filtered.filter(d => /expected|mandatory|conditional/i.test(d.disclosure)).length;
+  els.courseCount.textContent = `${courseFam}/${filtered.length}`;
+  els.researchCount.textContent = `${researchFam}/${filtered.length}`;
+  els.disclosureCount.textContent = `${disclosureFam}/${filtered.length}`;
+}
+
+function renderTable(rows) {
+  els.tableBody.innerHTML = rows.map(item => `
+    <tr>
+      <td><strong>${item.name}</strong></td>
+      <td>${item.region}</td>
+      <td>${item.course_model}</td>
+      <td>${item.research_model}</td>
+      <td>${item.disclosure}</td>
+      <td>${item.thesis_guidance}</td>
+      <td>${item.review}</td>
+      <td>${item.privacy}</td>
+    </tr>
+  `).join('');
+}
+
+function renderBars(rows) {
+  const buckets = [
+    {label: 'US', value: rows.filter(d => d.region === 'US').length},
+    {label: 'Canada', value: rows.filter(d => d.region === 'Canada').length},
+    {label: 'UK', value: rows.filter(d => d.region === 'UK').length},
+    {label: 'Europe', value: rows.filter(d => d.region === 'Europe').length},
+  ];
+  const max = Math.max(1, ...buckets.map(b => b.value));
+
+  els.bars.innerHTML = buckets.map(b => `
+    <div class="barrow">
+      <div>${b.label}</div>
+      <div class="bartrack"><div class="barfill" style="width:${(b.value/max)*100}%"></div></div>
+      <div style="text-align:right; color: var(--muted);">${b.value}</div>
+    </div>
+  `).join('');
+}
+
+function applyFilters() {
+  const filtered = data.filter(matches);
+  if (!filtered.some(d => d.name === selected?.name)) {
+    selected = filtered[0] || data[0];
+  }
+  renderDetail();
+  renderCards();
+}
+
+['input','change'].forEach(evt => {
+  els.search.addEventListener(evt, applyFilters);
+  els.region.addEventListener(evt, applyFilters);
+  els.course.addEventListener(evt, applyFilters);
+  els.disclosure.addEventListener(evt, applyFilters);
+  els.thesis.addEventListener(evt, applyFilters);
+});
+
+renderDetail();
+renderCards();
+renderBars(data);
+</script>
+</body>
+</html>
